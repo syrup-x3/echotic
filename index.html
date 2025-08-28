@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Echotic</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@700&family=Ubuntu+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #121212;
+            --bg-secondary: #1F1A24;
+            --accent-primary: #332940;
+            --accent-secondary: #BB86FC;
+            --text-primary: #e0e0e0;
+            --text-secondary: #999999;
+        }
+
+        body {
+            font-family: 'Ubuntu Mono', monospace;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0; /* Removed padding to allow full background */
+            display: flex;
+            flex-direction: column; /* Stack header and main content */
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden; /* Prevent horizontal scroll */
+            position: relative; /* For background positioning */
+        }
+
+        /* Dynamic Diagonal Grid Background */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg,
+                rgba(255, 255, 255, 0.05) 10%,
+                transparent 10%,
+                transparent 20%,
+                rgba(255, 255, 255, 0.05) 20%,
+                rgba(255, 255, 255, 0.05) 30%,
+                transparent 30%,
+                transparent 40%,
+                rgba(255, 255, 255, 0.05) 40%,
+                rgba(255, 255, 255, 0.05) 50%,
+                transparent 50%,
+                transparent 60%,
+                rgba(255, 255, 255, 0.05) 60%,
+                rgba(255, 255, 255, 0.05) 70%,
+                transparent 70%,
+                transparent 80%,
+                rgba(255, 255, 255, 0.05) 80%,
+                rgba(255, 255, 255, 0.05) 90%,
+                transparent 90%,
+                transparent 100%
+            );
+            background-size: 40px 40px; /* Adjust grid size as needed */
+            animation: moveGrid 30s linear infinite;
+            z-index: -1; /* Place it behind content */
+        }
+
+        @keyframes moveGrid {
+            0% { background-position: 0 0; }
+            100% { background-position: 40px 40px; } /* Shift by the size of the grid cell */
+        }
+
+        .main-content-wrapper {
+            display: flex;
+            width: 100%;
+            justify-content: center;
+            align-items: flex-start; /* Align items to the top */
+            padding: 20px;
+            box-sizing: border-box; /* Include padding in width */
+            z-index: 1; /* Ensure content is above background */
+        }
+
+        .container {
+            background-color: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            position: relative;
+            margin-left: 20px; /* Space for sidebar */
+        }
+
+        header {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 10px 20px;
+            box-sizing: border-box;
+            position: relative; /* For logo positioning */
+        }
+
+        h1 {
+            font-family: 'IBM Plex Sans', sans-serif;
+            color: var(--accent-secondary);
+            margin: 0; /* Remove default margin */
+            font-size: 2.5em;
+        }
+
+        .echotic-logo {
+            position: absolute;
+            left: 10px; /* Adjust as needed */
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px; /* Adjust logo size */
+            height: 50px;
+            background-image: url('AudioFiles/PNGcovers/echotic.png'); /* Placeholder for logo */
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+
+        .language-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+        }
+
+        .language-selector select {
+            background-color: var(--accent-primary);
+            color: var(--text-primary);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Ubuntu Mono', monospace;
+            font-size: 0.9em;
+            outline: none;
+        }
+
+        .language-selector select:hover {
+            background-color: var(--accent-secondary);
+            color: var(--bg-primary);
+        }
+
+        .audio-display {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .cover-art {
+            width: 150px;
+            height: 150px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            background-color: var(--accent-primary); /* Placeholder color */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .cover-art img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .track-info {
+            margin-bottom: 20px;
+        }
+
+        .track-title {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 1.4em;
+            margin-bottom: 5px;
+            color: var(--accent-secondary);
+        }
+
+        .track-artist {
+            font-size: 1em;
+            color: var(--text-secondary);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            flex-wrap: wrap; /* Allow controls to wrap on smaller screens */
+        }
+
+        button {
+            background-color: var(--accent-primary);
+            color: var(--text-primary);
+            border: none;
+            padding: 12px 20px;
+            margin: 0 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Ubuntu Mono', monospace;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease;
+            outline: none;
+        }
+
+        button:hover {
+            background-color: var(--accent-secondary);
+            color: var(--bg-primary);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        #playPauseBtn {
+            font-size: 1.5em;
+            padding: 12px 25px;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background-color: var(--accent-primary);
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--accent-secondary);
+            width: 0%;
+            border-radius: 4px;
+            transition: width 0.1s linear;
+        }
+
+        .time-display {
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .no-files-message {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 1.5em;
+            color: var(--accent-secondary);
+            margin-top: 50px;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px; /* Fixed width for sidebar */
+            background-color: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            margin-right: 20px; /* Space between sidebar and main container */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            height: calc(100vh - 40px); /* Full height minus body padding */
+            overflow-y: auto; /* Enable scrolling if list is long */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 1.2em;
+            color: var(--accent-secondary);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--accent-primary);
+        }
+
+        .song-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1; /* Allow list to take available space */
+        }
+
+        .song-item {
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            transition: background-color 0.2s ease;
+            font-size: 0.9em;
+            white-space: nowrap; /* Prevent text from wrapping */
+            overflow: hidden; /* Hide overflowed text */
+            text-overflow: ellipsis; /* Show ellipsis for overflowed text */
+        }
+
+        .song-item:hover {
+            background-color: var(--accent-primary);
+        }
+
+        .song-item.playing {
+            background-color: var(--accent-secondary);
+            color: var(--bg-primary);
+            font-weight: bold;
+        }
+
+        .extra-controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-top: 10px;
+            border-top: 1px solid var(--accent-primary);
+        }
+
+        .extra-controls button, .extra-controls select {
+            background-color: var(--accent-primary);
+            color: var(--text-primary);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Ubuntu Mono', monospace;
+            font-size: 0.9em;
+            outline: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .extra-controls button:hover, .extra-controls select:hover {
+            background-color: var(--accent-secondary);
+            color: var(--bg-primary);
+        }
+
+        .extra-controls select {
+            appearance: none; /* Remove default dropdown arrow */
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2214%22%20height%3D%2210%22%3E%3Cpath%20fill%3D%22%23e0e0e0%22%20d%3D%22M7%2010L0%203h14z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 8px top 50%;
+            padding-right: 25px; /* Make space for the arrow */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1024px) {
+            .main-content-wrapper {
+                flex-direction: column;
+                align-items: center;
+            }
+            .sidebar {
+                width: 90%;
+                margin-right: 0;
+                margin-bottom: 20px;
+                height: auto; /* Adjust height for smaller screens */
+                max-height: 200px; /* Limit height and add scroll */
+            }
+            .container {
+                margin-left: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            button {
+                padding: 10px 15px;
+                font-size: 1em;
+            }
+            #playPauseBtn {
+                font-size: 1.3em;
+                padding: 10px 20px;
+            }
+            .cover-art {
+                width: 120px;
+                height: 120px;
+            }
+            .track-title {
+                font-size: 1.2em;
+            }
+            .echotic-logo {
+                width: 40px;
+                height: 40px;
+                left: 5px;
+            }
+            header {
+                padding: 10px 5px;
+            }
+            .extra-controls button, .extra-controls select {
+                font-size: 0.8em;
+                padding: 6px 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                width: 95%;
+                padding: 15px;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            .language-selector {
+                position: static;
+                margin-bottom: 20px;
+            }
+            .controls {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            button {
+                margin: 5px;
+            }
+            .sidebar {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="echotic-logo"></div>
+        <h1 id="mainTitle">Echotic</h1>
+        <div class="language-selector">
+            <select id="langSelector">
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="ru">Русский</option>
+            </select>
+        </div>
+    </header>
+
+    <div class="main-content-wrapper">
+        <div class="sidebar">
+            <div class="sidebar-header">Song List</div>
+            <ul id="songList" class="song-list">
+                <!-- Song items will be populated here by JavaScript -->
+            </ul>
+            <div class="extra-controls">
+                <button id="shuffleBtn" title="Shuffle">&#128465;</button>
+                <button id="repeatBtn" title="Repeat">🔁</button>
+                <select id="speedSelector" title="Playback Speed">
+                    <option value="0.5">0.5x</option>
+                    <option value="0.75">0.75x</option>
+                    <option value="1" selected>1x</option>
+                    <option value="1.25">1.25x</option>
+                    <option value="1.5">1.5x</option>
+                    <option value="2">2x</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="container">
+            <div id="audioPlayer">
+                <div class="audio-display">
+                    <div class="cover-art">
+                        <img id="albumCover" src="" alt="Album Cover">
+                    </div>
+                    <div class="track-info">
+                        <div id="trackTitle" class="track-title"></div>
+                        <div id="trackArtist" class="track-artist"></div>
+                    </div>
+                </div>
+
+                <div class="progress-bar-container" id="progressBarContainer">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <div class="time-display">
+                    <span id="currentTime">0:00</span>
+                    <span id="duration">0:00</span>
+                </div>
+
+                <div class="controls">
+                    <button id="prevBtn">&#9664;&#9664;</button>
+                    <button id="playPauseBtn">&#9658;</button> <!-- Play symbol -->
+                    <button id="nextBtn">&#9654;&#9654;</button>
+                </div>
+            </div>
+
+            <div id="noFilesMessage" class="no-files-message" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        // IMPORTANT: Manually list your MP3 file names WITHOUT the .mp3 extension
+        // The script will construct URLs like: AudioFiles/MP3/your_file_name.mp3
+        // And cover URLs like: AudioFiles/PNGcovers/your_file_name.png
+        const audioFiles = [
+            // IMPORTANT: Replace these with your actual song data.
+            // The 'name' should be the base filename without .mp3.
+            // 'title' and 'artist' are for display purposes.
+			{ name: "LCD Soundsystem - LCD Soundsystem - Beat Connection", title: "Beat Connection", artist: "LCD Soundsystem" },
+			{ name: "Tame Impala - Currents - The Less I Know The Better", title: "The Less I Know The Better", artist: "Tame Impala" },
+			{ name: "Tame Impala - Currents - Reality In Motion", title: "Reality In Motion", artist: "Tame Impala" },
+			{ name: "Tame Impala - Currents - Love-Paranoia", title: "Love/Paranoia", artist: "Tame Impala" },
+			{ name: "Tame Impala - Currents - New Person, Same Old Mistakes", title: "New Person, Same Old Mistakes", artist: "Tame Impala" },
+			{ name: "Tame Impala - The Slow Rush - One More Year", title: "One More Year", artist: "Tame Impala" },
+			{ name: "Tame Impala - The Slow Rush - Instant Destiny", title: "Instant Destiny", artist: "Tame Impala" },
+			{ name: "Tame Impala - The Slow Rush - Posthumous Forgiveness", title: "Posthumous Forgiveness", artist: "Tame Impala" },
+			{ name: "Tame Impala - The Slow Rush - One More Hour", title: "One More Hour", artist: "Tame Impala" },
+            { name: "Tame Impala - The Slow Rush B Sides & Remixes - The Boat I Row", title: "The Boat I Row", artist: "Tame Impala" },
+            // Add more audio files here like this:
+            // { name: "your_song_name", title: "Your Song Title", artist: "Your Artist Name" },
+        ];
+
+        const defaultCover = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNTAgMTUwIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iIzMzMjI0MCIvPjxwYXRoIGQ9Ik03NSAxM0M1My41IDEzIDE1IDMzLjUgMTUgNzVjMCAyMS41IDE4LjUgNDEgNDIgNDJjMjEuNSAwIDQxLTE4LjUgNDItNDJjMCAwIDAgMCAwIDBsLTEuOCAwbjAgMCAwLTUuMi0wLjhjLTIwLjQtMy40LTM1LjMtMTktMzcuNS0zNy4yQzcxLjQgMTMuOCA3My43IDEzIDc1IDEzeiIgZmlsbD0iIzE0MGJmZiIvPjxwYXRoIGQ9Ik03NSAxM0MzMS4zIDEzIDcuNSA0Ni45IDcuNSA5M2MwIDE2LjMgNC4xIDMxLjYgMTEuOCA0NC45bDEuOC43di0yOGwxLjYtLjljMTkuOC0zLjEgMzQuNi0xNy43IDM3LjItMzYuN0w3NS4zIDEzLjRjMC0uNSAwLS45LjEtMS4xTDc1IDExek03NSAxMTkuMWMtMTUuNSAwLTMwLjUtOC4zLTM3LjQtMjEuOGwtLjgtMS4zIDM2LjYtLjljMTkuMS0zIDM0LjItMTYuNSA0MC40LTM1LjJsLjUtMS4zIDEuNy4zYzUuNCAxMy4zIDEwLjggMjYuOCAxMS44IDQ0LjRsLjMgMS40LTE2LjIgNi4zYy02LjUgMi43LTE1LjIgMy42LTIzLjQgM2wtLjggMC4xem0xOS4zLTE3LjRjLTIuOS45LTYuMSAxLjUtOS40IDEuNmMtMTEuOC 0LTIyLjItNS43LTMwLjMtMTYuNWMtNS43LTguMy04LjktMTkuMi04LjktMzAuOWMwLTE0LjYgNi41LTI3LjggMTYuNy0zNi40YzMuNS0zLjIgNy40LTUuOSAExMC0zLjggMTQtMjAuNSA3LjMtMzguMiAxOS4yLTQ3LjcgMzUuMS03LjkxMi0xNi42LTI1LjUtMjUuOS00MC41bC0uOC0xLjFsMTguNy0uMWMxOC4yIDAgMzMuMyAxMi41IDM3LjggMjkuOGwtLj.NmMz.1IDE0.6LTQuMyAyOS40LTE2LjYgMzkuOS1jLTguNyA3LjQtMTkuNyAxMS40LTMxLjIgMTEuNCIgZmlsbD0iI2ZmZiIvPjwvc3ZnPg=='; // Basic placeholder SVG
+
+        // Language strings
+        const lang = {
+            en: {
+                title: "Echotic",
+                play: "Play",
+                pause: "Pause",
+                prev: "Previous",
+                next: "Next",
+                noFiles: "There are no audio files.",
+                loading: "Loading...",
+                songListHeader: "Song List",
+                shuffle: "Shuffle",
+                repeat: "Repeat",
+                repeatOff: "Repeat Off",
+                repeatOne: "Repeat One"
+            },
+            es: {
+                title: "Echotic",
+                play: "Reproducir",
+                pause: "Pausar",
+                prev: "Anterior",
+                next: "Siguiente",
+                noFiles: "No hay archivos de audio.",
+                loading: "Cargando...",
+                songListHeader: "Lista de Canciones",
+                shuffle: "Aleatorio",
+                repeat: "Repetir",
+                repeatOff: "Repetir Apagado",
+                repeatOne: "Repetir Una"
+            },
+            ru: {
+                title: "Эхотик",
+                play: "Играть",
+                pause: "Пауза",
+                prev: "Назад",
+                next: "Вперед",
+                noFiles: "Нет аудиофайлов.",
+                loading: "Загрузка...",
+                songListHeader: "Список Песен",
+                shuffle: "Перемешать",
+                repeat: "Повтор",
+                repeatOff: "Повтор Выкл.",
+                repeatOne: "Повтор Одну"
+            }
+        };
+
+        let currentTrackIndex = 0;
+        let audio = new Audio();
+        let isPlaying = false;
+        let repeatMode = 'off'; // 'off', 'one', 'all'
+        let shuffleState = false;
+
+        // --- DOM Elements ---
+        const mainTitle = document.getElementById('mainTitle');
+        const audioPlayerDiv = document.getElementById('audioPlayer');
+        const noFilesMessageDiv = document.getElementById('noFilesMessage');
+        const albumCover = document.getElementById('albumCover');
+        const trackTitle = document.getElementById('trackTitle');
+        const trackArtist = document.getElementById('trackArtist');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const progressBarContainer = document.getElementById('progressBarContainer');
+        const progressBar = document.getElementById('progressBar');
+        const currentTimeSpan = document.getElementById('currentTime');
+        const durationSpan = document.getElementById('duration');
+        const langSelector = document.getElementById('langSelector');
+        const songListUl = document.getElementById('songList');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        const repeatBtn = document.getElementById('repeatBtn');
+        const speedSelector = document.getElementById('speedSelector');
+        const sidebarHeader = document.querySelector('.sidebar-header');
+
+
+        // --- Functions ---
+
+        function updateLanguage(locale) {
+            mainTitle.textContent = lang[locale].title;
+            playPauseBtn.textContent = isPlaying ? lang[locale].pause : lang[locale].play;
+            prevBtn.setAttribute('title', lang[locale].prev);
+            nextBtn.setAttribute('title', lang[locale].next);
+            noFilesMessageDiv.textContent = lang[locale].noFiles;
+            sidebarHeader.textContent = lang[locale].songListHeader;
+            shuffleBtn.setAttribute('title', lang[locale].shuffle);
+            updateRepeatButtonText(locale); // Update repeat button text
+        }
+
+        function updateRepeatButtonText(locale) {
+            let buttonText = '';
+            switch (repeatMode) {
+                case 'off':
+                    buttonText = '🔁'; // Icon for repeat off
+                    repeatBtn.setAttribute('title', lang[locale].repeatOff);
+                    break;
+                case 'one':
+                    buttonText = '1️⃣'; // Icon for repeat one
+                    repeatBtn.setAttribute('title', lang[locale].repeatOne);
+                    break;
+                case 'all':
+                    buttonText = '🔁'; // Icon for repeat all
+                    repeatBtn.setAttribute('title', lang[locale].repeat);
+                    break;
+            }
+            repeatBtn.textContent = buttonText;
+        }
+
+        function loadAndDisplaySongs() {
+            songListUl.innerHTML = ''; // Clear existing list
+            audioFiles.forEach((track, index) => {
+                const listItem = document.createElement('li');
+                listItem.classList.add('song-item');
+                listItem.textContent = track.title || track.name;
+                listItem.setAttribute('data-index', index);
+                songListUl.appendChild(listItem);
+            });
+        }
+
+        function highlightCurrentSongInSidebar() {
+            document.querySelectorAll('.song-item').forEach((item, index) => {
+                item.classList.remove('playing');
+                if (index === currentTrackIndex) {
+                    item.classList.add('playing');
+                    // Auto-scroll sidebar to the playing song
+                    item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        }
+
+
+        function setTrackInfo(index) {
+            if (audioFiles.length === 0) {
+                audioPlayerDiv.style.display = 'none';
+                noFilesMessageDiv.style.display = 'block';
+                updateLanguage(langSelector.value);
+                return;
+            }
+
+            audioPlayerDiv.style.display = 'block';
+            noFilesMessageDiv.style.display = 'none';
+
+            const currentTrack = audioFiles[index];
+            const fileName = currentTrack.name;
+
+            // Construct file paths (assuming relative paths from the HTML file)
+            const audioSrc = `AudioFiles/MP3/${fileName}.mp3`;
+            const coverSrc = `AudioFiles/PNGcovers/${fileName}.png`;
+
+            // Set track details
+            trackTitle.textContent = currentTrack.title || fileName; // Use title if available, else filename
+            trackArtist.textContent = currentTrack.artist || '';
+
+            // Load audio and set cover
+            audio.src = audioSrc;
+            albumCover.src = coverSrc;
+            albumCover.onerror = () => {
+                albumCover.src = defaultCover;
+                albumCover.style.backgroundColor = 'var(--accent-primary)';
+            };
+
+            // Update button text immediately
+            playPauseBtn.textContent = isPlaying ? lang[langSelector.value].pause : lang[langSelector.value].play;
+            highlightCurrentSongInSidebar(); // Highlight the song in the sidebar
+        }
+
+        function playTrack() {
+            if (audioFiles.length === 0) return; // Do nothing if no files
+
+            if (audio.paused) {
+                audio.play();
+                isPlaying = true;
+                playPauseBtn.textContent = lang[langSelector.value].pause;
+            } else {
+                audio.pause();
+                isPlaying = false;
+                playPauseBtn.textContent = lang[langSelector.value].play;
+            }
+        }
+
+        function nextTrack() {
+            if (audioFiles.length === 0) return;
+
+            if (repeatMode === 'one') {
+                audio.currentTime = 0; // Restart the current track
+                audio.play();
+                return;
+            }
+
+            if (shuffleState) {
+                let newIndex;
+                do {
+                    newIndex = Math.floor(Math.random() * audioFiles.length);
+                } while (newIndex === currentTrackIndex && audioFiles.length > 1); // Ensure it's not the same track if possible
+                currentTrackIndex = newIndex;
+            } else {
+                currentTrackIndex = (currentTrackIndex + 1) % audioFiles.length;
+            }
+
+            setTrackInfo(currentTrackIndex);
+            if (isPlaying) {
+                audio.play();
+            }
+        }
+
+        function prevTrack() {
+            if (audioFiles.length === 0) return;
+
+            if (repeatMode === 'one') {
+                audio.currentTime = 0; // Restart the current track
+                audio.play();
+                return;
+            }
+
+            if (shuffleState) {
+                let newIndex;
+                do {
+                    newIndex = Math.floor(Math.random() * audioFiles.length);
+                } while (newIndex === currentTrackIndex && audioFiles.length > 1); // Ensure it's not the same track if possible
+                currentTrackIndex = newIndex;
+            } else {
+                currentTrackIndex = (currentTrackIndex - 1 + audioFiles.length) % audioFiles.length;
+            }
+
+            setTrackInfo(currentTrackIndex);
+            if (isPlaying) {
+                audio.play();
+            }
+        }
+
+        function toggleShuffle() {
+            shuffleState = !shuffleState;
+            // Optionally update button appearance or tooltip to indicate shuffle state
+            shuffleBtn.style.color = shuffleState ? 'var(--accent-secondary)' : 'var(--text-primary)';
+            shuffleBtn.style.fontWeight = shuffleState ? 'bold' : 'normal';
+            console.log("Shuffle is now:", shuffleState);
+        }
+
+        function toggleRepeat() {
+            switch (repeatMode) {
+                case 'off':
+                    repeatMode = 'one';
+                    break;
+                case 'one':
+                    repeatMode = 'all';
+                    break;
+                case 'all':
+                    repeatMode = 'off';
+                    break;
+            }
+            updateRepeatButtonText(langSelector.value);
+            console.log("Repeat mode is now:", repeatMode);
+        }
+
+        function setPlaybackSpeed() {
+            audio.playbackRate = parseFloat(speedSelector.value);
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            const formattedSeconds = remainingSeconds < 10 ? '0' + remainingSeconds : remainingSeconds;
+            return `${minutes}:${formattedSeconds}`;
+        }
+
+        function updateProgress() {
+            if (!isNaN(audio.duration)) {
+                const percentage = (audio.currentTime / audio.duration) * 100;
+                progressBar.style.width = `${percentage}%`;
+                currentTimeSpan.textContent = formatTime(audio.currentTime);
+                durationSpan.textContent = formatTime(audio.duration);
+            }
+        }
+
+        function seek(event) {
+            const rect = progressBarContainer.getBoundingClientRect();
+            const offsetX = event.clientX - rect.left;
+            const percentage = (offsetX / rect.width) * 100;
+            audio.currentTime = (audio.duration / 100) * percentage;
+        }
+
+        // --- Event Listeners ---
+        playPauseBtn.addEventListener('click', playTrack);
+        nextBtn.addEventListener('click', nextTrack);
+        prevBtn.addEventListener('click', prevTrack);
+
+        audio.addEventListener('ended', () => {
+            // Handle end of track based on repeat mode
+            if (repeatMode === 'one') {
+                audio.currentTime = 0;
+                audio.play();
+            } else if (repeatMode === 'all') {
+                nextTrack(); // This will handle the logic for next or shuffle
+            } else { // repeatMode === 'off'
+                nextTrack(); // This will handle the logic for next or shuffle
+            }
+        });
+
+        audio.addEventListener('timeupdate', updateProgress);
+
+        audio.addEventListener('loadedmetadata', () => {
+            // Ensure duration is updated when metadata is loaded
+            durationSpan.textContent = formatTime(audio.duration);
+        });
+
+        progressBarContainer.addEventListener('click', seek);
+
+        // Handle clicks on the song list in the sidebar
+        songListUl.addEventListener('click', (event) => {
+            if (event.target.classList.contains('song-item')) {
+                const index = parseInt(event.target.getAttribute('data-index'));
+                if (!isNaN(index) && index < audioFiles.length) {
+                    currentTrackIndex = index;
+                    setTrackInfo(currentTrackIndex);
+                    if (isPlaying) {
+                        audio.play(); // Auto-play if music was already playing
+                    }
+                }
+            }
+        });
+
+        langSelector.addEventListener('change', (event) => {
+            updateLanguage(event.target.value);
+            // If a track is loaded, update its button text immediately
+            if (audioFiles.length > 0) {
+                playPauseBtn.textContent = isPlaying ? lang[event.target.value].pause : lang[event.target.value].play;
+                highlightCurrentSongInSidebar(); // Re-highlight in case language change affects text width
+            }
+        });
+
+        shuffleBtn.addEventListener('click', toggleShuffle);
+        repeatBtn.addEventListener('click', toggleRepeat);
+        speedSelector.addEventListener('change', setPlaybackSpeed);
+
+        // --- Initial Setup ---
+        loadAndDisplaySongs(); // Populate the song list sidebar
+        updateLanguage(langSelector.value); // Set initial language and button text
+
+        // Check if there are any audio files configured
+        if (audioFiles.length === 0) {
+            audioPlayerDiv.style.display = 'none';
+            noFilesMessageDiv.style.display = 'block';
+        } else {
+            // Set the initial track info
+            setTrackInfo(currentTrackIndex);
+        }
+
+    </script>
+
+</body>
+</html>
